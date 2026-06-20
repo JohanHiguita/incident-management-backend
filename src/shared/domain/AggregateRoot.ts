@@ -3,12 +3,12 @@
  * It is used to create aggregate roots.
  */
 
-import { DomainEvent } from "./DomainEvent.js";
+import type { DomainEvent } from "./DomainEvent.js";
 import { UniqueEntityId } from "./UniqueEntityId.js";
 
-export abstract class AggregateRoot<T> {
+export abstract class AggregateRoot {
   private readonly _id: UniqueEntityId;
-  private  _domainEvents: DomainEvent[] = [];
+  private _domainEvents: DomainEvent[] = [];
 
   protected constructor(id: UniqueEntityId) {
     this._id = id;
