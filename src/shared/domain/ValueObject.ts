@@ -1,12 +1,17 @@
+/**
+ * ValueObject is a base class for all value objects.
+ * It is used to create immutable value objects.
+ */
+
 export abstract class ValueObject<T> {
-    protected readonly props: T;
-  
-    protected constructor(props: T) {
-      this.props = Object.freeze(props);
-    }
-  
-    equals(other?: ValueObject<T>): boolean {
-      if (!other) return false;
-      return JSON.stringify(this.props) === JSON.stringify(other.props);
-    }
+  protected readonly props: T;
+
+  protected constructor(props: T) {
+    this.props = Object.freeze(props);
   }
+
+  equals(other?: ValueObject<T>): boolean {
+    if (!other) return false;
+    return JSON.stringify(this.props) === JSON.stringify(other.props);
+  }
+}
