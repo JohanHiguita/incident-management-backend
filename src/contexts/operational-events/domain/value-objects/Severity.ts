@@ -24,7 +24,7 @@ export class Severity extends ValueObject<Props> {
     }
 
     if (!Object.values(SeverityLevel).includes(value as SeverityLevel)) {
-      throw new Error(`Invalid severity level: ${value} must be one of ${Object.keys(SeverityLevel).join(", ")}`);
+      throw new Error(`Invalid severity level: ${value} must be one of ${Object.values(SeverityLevel).join(", ")}`);
     }
 
     return new Severity({ value:  value as SeverityLevel });

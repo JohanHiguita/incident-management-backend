@@ -26,6 +26,7 @@ export class OperationalEvent extends AggregateRoot {
     private readonly traceId: TraceId;
 
 
+    
     private constructor(id: UniqueEntityId, props: CreateOperationalEventProps) {
         super(id);
         this.sourceApplication = props.sourceApplication;

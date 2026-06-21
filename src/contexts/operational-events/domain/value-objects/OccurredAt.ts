@@ -16,11 +16,11 @@ export class OccurredAt extends ValueObject<Props> {
     const value = new Date(raw);
 
     if (isNaN(value.getTime())) {
-      throw new Error("OcurredAt is not a valid date");
+      throw new Error("OccurredAt is not a valid date");
     }
 
     if (value.getTime() > Date.now() + OccurredAt.MAX_FUTURE_ALLOWED) {
-      throw new Error("OcurredAt cannot be in the future");
+      throw new Error("OccurredAt cannot be in the future");
     }
 
     return new OccurredAt({ value });

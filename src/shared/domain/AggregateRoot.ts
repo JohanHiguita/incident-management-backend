@@ -14,7 +14,7 @@ export abstract class AggregateRoot {
     this._id = id;
   }
 
-  get id(): UniqueEntityId {
+  getId(): UniqueEntityId {
     return this._id;
   }
 
