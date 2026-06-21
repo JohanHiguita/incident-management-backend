@@ -1,3 +1,5 @@
+/* Operational Event Domain Entity */
+
 import { AggregateRoot } from "../../../shared/domain/AggregateRoot.js";
 import { UniqueEntityId } from "../../../shared/domain/UniqueEntityId.js";
 import { SourceApplication } from "./value-objects/SourceApplication.js";
