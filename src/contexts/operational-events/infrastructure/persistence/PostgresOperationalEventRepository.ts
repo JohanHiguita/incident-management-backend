@@ -1,5 +1,5 @@
 import { OperationalEventRepository } from "../../domain/repositories/OperationalEventRepository.js";
-import { postgresPool } from "./postgresPool.js";
+import { postgresPool } from "../../../../shared/infrastructure/persistence/postgresPool.js";
 import { OperationalEvent } from "../../domain/OperationalEvent.js";
 import { TraceId } from "../../domain/value-objects/TraceId.js";
 import { UniqueEntityId } from "../../../../shared/domain/UniqueEntityId.js";

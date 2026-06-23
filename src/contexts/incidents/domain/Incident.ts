@@ -92,6 +92,10 @@ export class Incident extends AggregateRoot {
     return this.assignee;
   }
 
+  getAffectedApplication(): AffectedApplication {
+    return this.affectedApplication;
+  }
+
   getLinkedEventIds(): UniqueEntityId[] {
     return [...this.linkedEventIds];
   }
