@@ -11,11 +11,13 @@ import { TraceId } from "../../domain/value-objects/TraceId.js";
 import type { RegisterOperationalEventRequest } from "./RegisterOperationalEventRequest.js";
 import type { RegisterOperationalEventResponse } from "./RegisterOperationalEventResponse.js";
 import { DuplicateTraceIdError } from "./DuplicateTraceIdError.js";
+import type { EventBus } from "../../../../shared/infrastructure/events/EventBus.js";
 
 export class RegisterOperationalEventUseCase {
 
     constructor (
         private readonly repository: OperationalEventRepository,
+        private readonly eventBus: EventBus,
     ){}
 
     async execute(request: RegisterOperationalEventRequest): Promise<RegisterOperationalEventResponse> {
@@ -40,6 +42,9 @@ export class RegisterOperationalEventUseCase {
         });
 
         await this.repository.save(operationalEvent);
+
+        // Publish the operational event to the event bus
+        this.eventBus.publish(operationalEvent.pullDomainEvents());
 
         return {
             id: operationalEvent.getId().value,

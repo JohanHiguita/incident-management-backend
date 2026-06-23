@@ -10,6 +10,7 @@ import { EventDescription } from "./value-objects/EventDescription.js";
 import { Severity } from "./value-objects/Severity.js";
 import { OccurredAt } from "./value-objects/OccurredAt.js";
 import { TraceId } from "./value-objects/TraceId.js";
+import { OperationalEventRegistered } from "./events/OperationalEventRegistered.js";
 
 interface CreateOperationalEventProps {
   sourceApplication: SourceApplication;
@@ -41,7 +42,10 @@ export class OperationalEvent extends AggregateRoot {
   static create(params: CreateOperationalEventProps): OperationalEvent {
     const id = UniqueEntityId.create();
 
-    return new OperationalEvent(id, params);
+    const event = new OperationalEvent(id, params);
+    event.recordRegistered(); // Record the registered event
+
+    return event;
   }
 
   static reconstitute(
@@ -73,5 +77,17 @@ export class OperationalEvent extends AggregateRoot {
 
   getTraceId(): TraceId {
     return this.traceId;
+  }
+
+  private recordRegistered(): void {
+    this.addDomainEvent(
+      new OperationalEventRegistered(
+        this.getId().value,
+        this.sourceApplication.value,
+        this.severity.value,
+        this.traceId.value,
+        this.occurredAt.value,
+      ),
+    );
   }
 }
