@@ -1,3 +1,5 @@
+-- context: operational-events (HU1)
+
 CREATE TABLE IF NOT EXISTS operational_events (
     id UUID PRIMARY KEY,
     source_application VARCHAR(500) NOT NULL,
@@ -7,4 +9,3 @@ CREATE TABLE IF NOT EXISTS operational_events (
     occurred_at TIMESTAMPTZ NOT NULL,
     trace_id VARCHAR(128) NOT NULL UNIQUE
 );
-

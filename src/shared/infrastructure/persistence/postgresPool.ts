@@ -1,6 +1,6 @@
-/* Postgres Pool Connection 
-* This file is used to create a pool of connections to the PostgreSQL database.
-*/
+/* Postgres Pool Connection
+ * Shared pool for all bounded contexts using the same PostgreSQL database.
+ */
 
 import pg from "pg";
 

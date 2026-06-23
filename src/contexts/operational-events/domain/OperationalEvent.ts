@@ -9,7 +9,6 @@ import { Severity } from "./value-objects/Severity.js";
 import { OccurredAt } from "./value-objects/OccurredAt.js";
 import { TraceId } from "./value-objects/TraceId.js";
 
-
 interface CreateOperationalEventProps {
   sourceApplication: SourceApplication;
   eventType: EventType;
@@ -20,53 +19,57 @@ interface CreateOperationalEventProps {
 }
 
 export class OperationalEvent extends AggregateRoot {
-    private readonly sourceApplication: SourceApplication;
-    private readonly eventType: EventType;
-    private readonly eventDescription: EventDescription;
-    private readonly severity: Severity;
-    private readonly occurredAt: OccurredAt;
-    private readonly traceId: TraceId;
+  private readonly sourceApplication: SourceApplication;
+  private readonly eventType: EventType;
+  private readonly eventDescription: EventDescription;
+  private readonly severity: Severity;
+  private readonly occurredAt: OccurredAt;
+  private readonly traceId: TraceId;
 
+  private constructor(id: UniqueEntityId, props: CreateOperationalEventProps) {
+    super(id);
+    this.sourceApplication = props.sourceApplication;
+    this.eventType = props.eventType;
+    this.eventDescription = props.eventDescription;
+    this.severity = props.severity;
+    this.traceId = props.traceId;
+    this.occurredAt = props.occurredAt;
+  }
 
-    
-    private constructor(id: UniqueEntityId, props: CreateOperationalEventProps) {
-        super(id);
-        this.sourceApplication = props.sourceApplication;
-        this.eventType = props.eventType;
-        this.eventDescription = props.eventDescription;
-        this.severity = props.severity;
-        this.traceId = props.traceId;
-        this.occurredAt = props.occurredAt;
-    }
+  static create(params: CreateOperationalEventProps): OperationalEvent {
+    const id = UniqueEntityId.create();
 
-    static create(params: CreateOperationalEventProps): OperationalEvent {
-        const id = UniqueEntityId.create();
-      
-        return new OperationalEvent(id, params);
-    }
+    return new OperationalEvent(id, params);
+  }
 
-    getSourceApplication(): SourceApplication {
-        return this.sourceApplication;
-    }
+  static reconstitute(
+    id: UniqueEntityId,
+    props: CreateOperationalEventProps,
+  ): OperationalEvent {
+    return new OperationalEvent(id, props);
+  }
 
-    getEventType(): EventType {
-        return this.eventType;
-    }
+  getSourceApplication(): SourceApplication {
+    return this.sourceApplication;
+  }
 
-    getEventDescription(): EventDescription {
-        return this.eventDescription;
-    }
+  getEventType(): EventType {
+    return this.eventType;
+  }
 
-    getSeverity(): Severity {
-        return this.severity;
-    }
+  getEventDescription(): EventDescription {
+    return this.eventDescription;
+  }
 
-    getOccurredAt(): OccurredAt {
-        return this.occurredAt;
-    }
+  getSeverity(): Severity {
+    return this.severity;
+  }
 
-    getTraceId(): TraceId {
-        return this.traceId;
-    }
+  getOccurredAt(): OccurredAt {
+    return this.occurredAt;
+  }
 
+  getTraceId(): TraceId {
+    return this.traceId;
+  }
 }
