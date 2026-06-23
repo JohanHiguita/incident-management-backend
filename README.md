@@ -1,140 +1,198 @@
-# Backend — Plataforma de Gestión de Incidentes y Monitoreo Operacional
+# Reto Técnico: Plataforma de Gestión de Incidentes y Monitoreo Operacional — Backend
+
+**Desarrollado por:** Johan Higuita
+
+API REST para registro de eventos (HU1), gestión de incidentes (HU2), alertas (HU3), métricas de dashboard (HU4) e integración legacy PHP (HU5).
+
+---
+
+## Stack tecnológico
+
+| Área | Tecnología |
+|------|------------|
+| Runtime | Node.js 20+, TypeScript (ESM) |
+| HTTP | Express 5 |
+| Base de datos | PostgreSQL 16 (`pg`, SQL manual) |
+| Arquitectura | DDD, capas hexagonales, monolito modular |
+| Documentación | OpenAPI 3 + Swagger UI |
+| Legacy | PHP 8 (`legacy/`) |
+| Tests | Vitest |
+| Dev | tsx, nodemon, Docker Compose |
+| Agente AI | Cursor (asistente de desarrollo y revisión) |
+
+---
 
 ## Requisitos
 
 - Node.js 20+
-- Docker Desktop
+- Docker Desktop (PostgreSQL local)
+- PHP 8+ (solo para probar el cliente legacy HU5)
 
-## Arranque
+---
+
+## Cómo iniciar la app
 
 ```bash
-# 1. Base de datos (desde la raíz del proyecto)
+# 1. Base de datos (desde la raíz del monorepo)
 docker compose up -d
 
-# 2. Variables de entorno
+# 2. Backend
 cd backend
-cp .env.example .env   # Windows: Copy-Item .env.example .env
-
-# 3. Instalar y ejecutar
+cp .env.example .env          # Windows: Copy-Item .env.example .env
 npm install
 npm run dev
 ```
 
-La API queda en `http://localhost:3000` (configurable con `PORT` en `.env`).
+- API: **http://localhost:3000**
+- Swagger: **http://localhost:3000/api-docs**
+- Health: `GET /health`
 
-Producción compilada:
+| Variable | Descripción |
+|----------|-------------|
+| `DATABASE_URL` | Conexión PostgreSQL (debe coincidir con `docker-compose.yml`) |
+| `PORT` | Puerto HTTP (default `3000`) |
 
-```bash
-npm run build
-npm start
-```
+---
 
-## Tests
+## Datos de prueba (`npm run populate`)
 
-```bash
-npm test
-```
-
-Unitarios con Vitest (dominio, casos de uso, EventBus y handler de alertas). No requieren PostgreSQL.
-
-## Migraciones Docker
-
-Las migraciones en `docker-entrypoint-initdb.d` solo se ejecutan la primera vez que se crea el volumen `postgres_data`.
-
-Si alguien ya levantó el contenedor con volumen vacío o sin migración:
+Script en `scripts/populate.ts` que **sembrar la BD solo vía HTTP** (no escribe directo en PostgreSQL). Requiere la API en marcha.
 
 ```bash
-docker compose down -v   # borra volumen
-docker compose up -d     # recrea BD + ejecuta SQL
-```
-
-### Error `relation "alerts" does not exist`
-
-Significa que PostgreSQL **no tiene la tabla `alerts`** (migración `003_create_alerts.sql`). Suele pasar si el volumen Docker se creó **antes** de añadir esa migración: `docker-entrypoint-initdb.d` solo corre en el **primer** arranque del volumen.
-
-**Opción A — conservar datos** (aplicar solo la migración faltante):
-
-```bash
-# Windows (PowerShell), desde la raíz del proyecto
-Get-Content backend\migrations\003_create_alerts.sql | docker exec -i coordinadora-postgres psql -U user -d coordinadora_events
-```
-
-Linux/macOS:
-
-```bash
-docker exec -i coordinadora-postgres psql -U user -d coordinadora_events < backend/migrations/003_create_alerts.sql
-```
-
-**Opción B — BD limpia** (borra todos los datos):
-
-```bash
-docker compose down -v
-docker compose up -d
-```
-
-## Datos de prueba (dashboard)
-
-```bash
-# 1. Aplicar migraciones (incluye tabla alerts — HU3 e índices — 004)
-npm run migrate
-
-# 2. API en marcha
+# Terminal 1
 npm run dev
 
-# 3. En otra terminal
+# Terminal 2 (desde backend/)
+npm run migrate    # solo si faltan tablas (volumen Docker antiguo)
 npm run populate
 ```
 
-`populate` crea eventos (incluye CRITICAL → alertas async), incidentes y cambios de estado **solo vía HTTP**. Si falta la tabla `alerts`, ejecuta `npm run migrate` primero.
+Si falla por tabla `alerts` inexistente, ejecutar `npm run migrate` primero.
 
-## Integración legacy (PHP) — HU5
+---
 
-El directorio `backend/legacy/` contiene un cliente PHP que consulta incidentes abiertos **vía API** (no accede a PostgreSQL).
+## Integración legacy (HU5)
+
+Cliente PHP en `legacy/` que consulta incidentes abiertos desde la API moderna.
 
 ```
 PHP (legacy/)  --GET /api/v1/incidents/open-->  API Express  -->  PostgreSQL
 ```
 
-### Requisitos
-
-- PHP 8.0+
-- Extensión `curl` o `allow_url_fopen`
-- API en marcha (`npm run dev`)
-
-### Uso
-
-```bash
-# Desde backend/, con la API en http://localhost:3000
-php legacy/list_open_incidents.php
-```
-
-Salida: JSON con `id`, `affectedApplication`, `severity`, `status`, `createdAt`.
-
-Demo web:
-
-```bash
-php -S localhost:8080 legacy/list_open_incidents.php
-```
-
-### Configuración (opcional)
-
-No requiere archivo `.env`. Por defecto usa `http://localhost:3000` (mismo `PORT` del backend).
-
-En otro host o puerto, define la variable de entorno del sistema antes de ejecutar PHP:
-
-```bash
-# Linux / macOS
-export INCIDENTS_API_BASE_URL=http://localhost:3000
-php legacy/list_open_incidents.php
-
-# Windows PowerShell
-$env:INCIDENTS_API_BASE_URL = "http://localhost:3000"
-php legacy/list_open_incidents.php
-```
-
-### Archivos
-
 | Archivo | Rol |
 |---------|-----|
 | `legacy/OpenIncidentsClient.php` | Cliente HTTP reutilizable |
 | `legacy/list_open_incidents.php` | Punto de entrada (CLI o web) |
+
+**Requisitos:** PHP 8+, extensión `curl` o `allow_url_fopen`, API en marcha.
+
+```bash
+# Desde backend/
+php legacy/list_open_incidents.php
+```
+
+Salida JSON: `id`, `affectedApplication`, `severity`, `status`, `createdAt` (estados `OPEN` e `IN_PROGRESS`).
+
+Demo web: `php -S localhost:8080 legacy/list_open_incidents.php`
+
+---
+
+## Tests
+
+```bash
+npm test              # ejecución única
+npm run test:watch    # modo watch
+```
+
+**Qué se prueba (27 tests unitarios):**
+
+| Área | Cobertura |
+|------|-----------|
+| `operational-events` | VOs (`Severity`, `SourceApplication`), agregado, `RegisterOperationalEventUseCase` |
+| `incidents` | Transiciones de `IncidentStatus`, crear/actualizar/listar abiertos |
+| `alerts` | Handler CRITICAL → alerta |
+| `dashboard` | Filtros, buckets de estados, `GetDashboardMetricsUseCase` |
+| `shared` | `InMemoryEventBus` |
+
+No hay tests de integración con PostgreSQL; los repositorios se validan en runtime.
+
+---
+
+## DDD — lenguaje ubicuo
+
+### Bounded contexts
+
+| Contexto | Agregado raíz | Responsabilidad |
+|----------|---------------|-----------------|
+| `operational-events` | `OperationalEvent` | Registro inmutable de eventos operacionales |
+| `incidents` | `Incident` | Ciclo de vida del incidente (estado mutable) |
+| `alerts` | `Alert` | Alerta operacional por evento CRITICAL |
+| `dashboard` | — (lectura) | Métricas agregadas para el dashboard |
+
+Integración entre contextos **solo por IDs** (`UniqueEntityId`), sin acoplar agregados.
+
+### Capas por contexto
+
+```
+domain/          → agregados, VOs, puertos (sin Express ni pg)
+application/     → casos de uso, DTOs, errores de aplicación
+infrastructure/  → HTTP, persistencia PostgreSQL
+```
+
+Composition root en `*Routes.ts` (ensambla repositorio → use case → controller).
+
+---
+
+## Diagrama E-R (PostgreSQL)
+
+```mermaid
+erDiagram
+    operational_events {
+        uuid id PK
+        varchar source_application
+        varchar event_type
+        text event_description
+        varchar severity
+        timestamptz occurred_at
+        varchar trace_id UK
+    }
+
+    incidents {
+        uuid id PK
+        varchar title
+        text description
+        varchar affected_application
+        varchar severity
+        varchar status
+        varchar assignee
+        timestamptz created_at
+    }
+
+    incident_events {
+        uuid incident_id PK,FK
+        uuid event_id PK,FK
+    }
+
+    alerts {
+        uuid id PK
+        uuid source_event_id FK,UK
+        varchar affected_application
+        varchar severity
+        timestamptz generated_at
+        varchar processing_status
+    }
+
+    operational_events ||--o{ incident_events : "linked"
+    incidents ||--o{ incident_events : "linked"
+    operational_events ||--o| alerts : "critical event"
+```
+
+---
+
+## Deuda técnica
+
+- **Manejo de errores HTTP** — la lógica vive en cada controller (`try/catch`); el `errorHandler` global existe pero casi no se usa porque los errores no se propagan con `next(err)`. Hubiera gustado un mapeo centralizado dominio → status (400/404/409/500).
+- **Caché con Redis** — las métricas del dashboard y consultas frecuentes golpean PostgreSQL directo; Redis hubiera reducido carga y latencia.
+- **ORM** — persistencia con SQL manual y `pg`; un ORM (p. ej. Prisma, Drizzle) hubiera acelerado consultas repetitivas y migraciones, a costa de más acoplamiento con el modelo relacional.
+- **WebSockets** — descartados; el frontend usa polling para actualizar el dashboard.
+- **Tests de integración** — solo unitarios con mocks; sin suite contra PostgreSQL real.
