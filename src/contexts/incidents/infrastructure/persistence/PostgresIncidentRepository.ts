@@ -4,7 +4,7 @@ import { IncidentDescription } from "../../domain/value-objects/IncidentDescript
 import { IncidentStatus } from "../../domain/value-objects/IncidentStatus.js";
 import { Assignee } from "../../domain/value-objects/Assignee.js";
 import { AffectedApplication } from "../../domain/value-objects/AffectedApplication.js";
-import { Severity } from "../../../operational-events/domain/value-objects/Severity.js";
+import { IncidentSeverity } from "../../domain/value-objects/IncidentSeverity.js";
 import { postgresPool } from "../../../../shared/infrastructure/persistence/postgresPool.js";
 import { Incident } from "../../domain/Incident.js";
 import { UniqueEntityId } from "../../../../shared/domain/UniqueEntityId.js";
@@ -87,7 +87,7 @@ export class PostgresIncidentRepository implements IncidentRepository {
       incidentTitle: IncidentTitle.create(row.title),
       incidentDescription: IncidentDescription.create(row.description),
       incidentStatus: IncidentStatus.create(row.status),
-      severity: Severity.create(row.severity),
+      severity: IncidentSeverity.create(row.severity),
       assignee: Assignee.create(row.assignee),
       affectedApplication: AffectedApplication.create(row.affected_application),
       createdAt: row.created_at as Date,

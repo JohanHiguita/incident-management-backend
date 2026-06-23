@@ -3,7 +3,7 @@ import { UniqueEntityId } from "../../../shared/domain/UniqueEntityId.js";
 import { IncidentTitle } from "./value-objects/IncidentTitle.js";
 import { IncidentDescription } from "./value-objects/IncidentDescription.js";
 import { IncidentStatus } from "./value-objects/IncidentStatus.js";
-import { Severity } from "../../operational-events/domain/value-objects/Severity.js";
+import { IncidentSeverity } from "./value-objects/IncidentSeverity.js";
 import { Assignee } from "./value-objects/Assignee.js";
 import { AffectedApplication } from "./value-objects/AffectedApplication.js";
 
@@ -11,7 +11,7 @@ interface CreateIncidentProps {
   incidentTitle: IncidentTitle;
   incidentDescription: IncidentDescription;
   incidentStatus: IncidentStatus;
-  severity: Severity;
+  severity: IncidentSeverity;
   assignee: Assignee;
   affectedApplication: AffectedApplication;
   linkedEventIds: UniqueEntityId[];
@@ -22,7 +22,7 @@ export class Incident extends AggregateRoot {
   private readonly incidentTitle: IncidentTitle;
   private readonly incidentDescription: IncidentDescription;
   private incidentStatus: IncidentStatus;
-  private readonly severity: Severity;
+  private readonly severity: IncidentSeverity;
   private readonly assignee: Assignee;
   private readonly affectedApplication: AffectedApplication;
   private readonly linkedEventIds: UniqueEntityId[];
@@ -84,7 +84,7 @@ export class Incident extends AggregateRoot {
     return this.incidentStatus;
   }
 
-  getSeverity(): Severity {
+  getSeverity(): IncidentSeverity {
     return this.severity;
   }
 

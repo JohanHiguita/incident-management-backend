@@ -1,3 +1,8 @@
+import {
+  ALLOWED_APPLICATIONS,
+  formatAllowedApplications,
+  isAllowedApplication,
+} from "../../../../shared/domain/AllowedApplications.js";
 import { ValueObject } from "../../../../shared/domain/ValueObject.js";
 
 interface Props {
@@ -5,20 +10,7 @@ interface Props {
 }
 
 export class SourceApplication extends ValueObject<Props> {
-
-  static readonly ALLOWED_VALUES = [
-    "payments-api", 
-    "orders-api",
-    "inventory-service", 
-    "notifications-service", 
-    "auth-service", 
-    "billing-legacy", 
-    "shipping-api", 
-  ] as const;
-
-  private static readonly ALLOWED = new Set<string>(
-    SourceApplication.ALLOWED_VALUES,
-  );
+  static readonly ALLOWED_VALUES = ALLOWED_APPLICATIONS;
 
   private constructor(props: Props) {
     super(props);
@@ -31,10 +23,9 @@ export class SourceApplication extends ValueObject<Props> {
       throw new Error("SourceApplication cannot be empty");
     }
 
-
-    if (!SourceApplication.ALLOWED.has(value)) {
+    if (!isAllowedApplication(value)) {
       throw new Error(
-        `SourceApplication ${value} is not allowed. Allowed values: ${SourceApplication.ALLOWED_VALUES.join(", ")}`,
+        `SourceApplication ${value} is not allowed. Allowed values: ${formatAllowedApplications()}`,
       );
     }
 
