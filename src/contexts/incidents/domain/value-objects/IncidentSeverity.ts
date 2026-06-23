@@ -7,6 +7,8 @@ export enum IncidentSeverityLevel {
   CRITICAL = "CRITICAL",
 }
 
+const ALLOWED_LEVELS = Object.values(IncidentSeverityLevel);
+
 interface Props {
   value: IncidentSeverityLevel;
 }
@@ -23,9 +25,9 @@ export class IncidentSeverity extends ValueObject<Props> {
       throw new Error("IncidentSeverity cannot be empty");
     }
 
-    if (!Object.values(IncidentSeverityLevel).includes(value as IncidentSeverityLevel)) {
+    if (!ALLOWED_LEVELS.includes(value as IncidentSeverityLevel)) {
       throw new Error(
-        `Invalid incident severity level: ${value} must be one of ${Object.values(IncidentSeverityLevel).join(", ")}`,
+        `Invalid incident severity level: ${value} must be one of ${ALLOWED_LEVELS.join(", ")}`,
       );
     }
 
