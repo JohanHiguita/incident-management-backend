@@ -8,6 +8,9 @@ import { IncidentSeverity } from "../../domain/value-objects/IncidentSeverity.js
 import { postgresPool } from "../../../../shared/infrastructure/persistence/postgresPool.js";
 import { Incident } from "../../domain/Incident.js";
 import { UniqueEntityId } from "../../../../shared/domain/UniqueEntityId.js";
+import type { IncidentStatusValue } from "../../../../shared/domain/IncidentStatusValues.js";
+
+const OPEN_STATUSES: IncidentStatusValue[] = ["OPEN", "IN_PROGRESS"];
 
 export class PostgresIncidentRepository implements IncidentRepository {
   async save(incident: Incident): Promise<void> {
@@ -37,10 +40,9 @@ export class PostgresIncidentRepository implements IncidentRepository {
         ],
       );
 
-      await client.query(
-        `DELETE FROM incident_events WHERE incident_id = $1`,
-        [incidentId],
-      );
+      await client.query(`DELETE FROM incident_events WHERE incident_id = $1`, [
+        incidentId,
+      ]);
 
       for (const eventId of incident.getLinkedEventIds()) {
         await client.query(
@@ -93,5 +95,56 @@ export class PostgresIncidentRepository implements IncidentRepository {
       createdAt: row.created_at as Date,
       linkedEventIds,
     });
+  }
+
+  async findOpen(): Promise<Incident[]> {
+    const incidentResult = await postgresPool.query(
+      `
+      SELECT id, title, description, affected_application, severity, status, assignee, created_at
+      FROM incidents
+      WHERE status = ANY($1)
+      ORDER BY created_at DESC
+      `,
+      [OPEN_STATUSES],
+    );
+
+    if ((incidentResult.rowCount ?? 0) === 0) {
+      return [];
+    }
+
+    const incidentIds = incidentResult.rows.map((row) => row.id as string);
+
+    const eventsResult = await postgresPool.query(
+      `
+      SELECT incident_id, event_id
+      FROM incident_events
+      WHERE incident_id = ANY($1)
+      `,
+      [incidentIds],
+    );
+
+    const linkedEventsByIncident = new Map<string, UniqueEntityId[]>();
+
+    for (const eventRow of eventsResult.rows) {
+      const incidentId = eventRow.incident_id as string;
+      const linkedEventIds = linkedEventsByIncident.get(incidentId) ?? [];
+      linkedEventIds.push(UniqueEntityId.fromString(eventRow.event_id));
+      linkedEventsByIncident.set(incidentId, linkedEventIds);
+    }
+
+    return incidentResult.rows.map((row) =>
+      Incident.reconstitute(UniqueEntityId.fromString(row.id), {
+        incidentTitle: IncidentTitle.create(row.title),
+        incidentDescription: IncidentDescription.create(row.description),
+        incidentStatus: IncidentStatus.create(row.status),
+        severity: IncidentSeverity.create(row.severity),
+        assignee: Assignee.create(row.assignee),
+        affectedApplication: AffectedApplication.create(
+          row.affected_application,
+        ),
+        createdAt: row.created_at as Date,
+        linkedEventIds: linkedEventsByIncident.get(row.id) ?? [],
+      }),
+    );
   }
 }

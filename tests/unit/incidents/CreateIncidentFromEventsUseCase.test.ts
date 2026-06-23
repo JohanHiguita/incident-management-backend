@@ -24,6 +24,7 @@ describe("CreateIncidentFromEventsUseCase", () => {
     const incidentRepository: IncidentRepository = {
       save: vi.fn().mockResolvedValue(undefined),
       findById: vi.fn(),
+      findOpen: vi.fn(),
     };
 
     const operationalEventRepository: OperationalEventRepository = {
@@ -46,7 +47,7 @@ describe("CreateIncidentFromEventsUseCase", () => {
 
   it("throws when events are missing", async () => {
     const useCase = new CreateIncidentFromEventsUseCase(
-      { save: vi.fn(), findById: vi.fn() },
+      { save: vi.fn(), findById: vi.fn(), findOpen: vi.fn() },
       {
         findByIds: vi.fn().mockResolvedValue([]),
         save: vi.fn(),
@@ -61,7 +62,7 @@ describe("CreateIncidentFromEventsUseCase", () => {
 
   it("throws when affected application does not match events", async () => {
     const useCase = new CreateIncidentFromEventsUseCase(
-      { save: vi.fn(), findById: vi.fn() },
+      { save: vi.fn(), findById: vi.fn(), findOpen: vi.fn() },
       {
         findByIds: vi.fn().mockResolvedValue([event]),
         save: vi.fn(),

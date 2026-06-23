@@ -86,3 +86,55 @@ npm run populate
 ```
 
 `populate` crea eventos (incluye CRITICAL → alertas async), incidentes y cambios de estado **solo vía HTTP**. Si falta la tabla `alerts`, ejecuta `npm run migrate` primero.
+
+## Integración legacy (PHP) — HU5
+
+El directorio `legacy/` en la raíz del monorepo contiene un cliente PHP que consulta incidentes abiertos **vía API** (no accede a PostgreSQL).
+
+```
+PHP (legacy/)  --GET /api/v1/incidents/open-->  API Express  -->  PostgreSQL
+```
+
+### Requisitos
+
+- PHP 8.0+
+- Extensión `curl` o `allow_url_fopen`
+- API en marcha (`npm run dev`)
+
+### Uso
+
+```bash
+# Desde la raíz del proyecto, con la API en http://localhost:3000
+php legacy/list_open_incidents.php
+```
+
+Salida: JSON con `id`, `affectedApplication`, `severity`, `status`, `createdAt`.
+
+Demo web:
+
+```bash
+php -S localhost:8080 legacy/list_open_incidents.php
+```
+
+### Configuración (opcional)
+
+No requiere archivo `.env`. Por defecto usa `http://localhost:3000` (mismo `PORT` del backend).
+
+En otro host o puerto, define la variable de entorno del sistema antes de ejecutar PHP:
+
+```bash
+# Linux / macOS
+export INCIDENTS_API_BASE_URL=http://localhost:3000
+php legacy/list_open_incidents.php
+
+# Windows PowerShell
+$env:INCIDENTS_API_BASE_URL = "http://localhost:3000"
+php legacy/list_open_incidents.php
+```
+
+### Archivos
+
+| Archivo | Rol |
+|---------|-----|
+| `legacy/OpenIncidentsClient.php` | Cliente HTTP reutilizable |
+| `legacy/list_open_incidents.php` | Punto de entrada (CLI o web) |

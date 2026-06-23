@@ -8,7 +8,7 @@ export const openApiDocument = {
     title: "Coordinadora — Incident & Operations Monitoring API",
     version: "1.0.0",
     description:
-      "API for operational events (HU1), incidents (HU2), async alerts (HU3), and dashboard metrics (HU4).",
+      "API for operational events (HU1), incidents (HU2), async alerts (HU3), dashboard metrics (HU4), and legacy open-incidents integration (HU5).",
   },
   servers: [
     {
@@ -18,8 +18,11 @@ export const openApiDocument = {
   ],
   tags: [
     { name: "Health", description: "Service health" },
-    { name: "Operational Events", description: "HU1 — Register operational events" },
-    { name: "Incidents", description: "HU2 — Incident lifecycle" },
+    {
+      name: "Operational Events",
+      description: "HU1 — Register operational events",
+    },
+    { name: "Incidents", description: "HU2 — Incident lifecycle; HU5 — open incidents for legacy" },
     { name: "Dashboard", description: "HU4 — Operational dashboard metrics" },
   ],
   paths: {
@@ -54,7 +57,9 @@ export const openApiDocument = {
           required: true,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/RegisterOperationalEventRequest" },
+              schema: {
+                $ref: "#/components/schemas/RegisterOperationalEventRequest",
+              },
             },
           },
         },
@@ -63,7 +68,9 @@ export const openApiDocument = {
             description: "Event registered",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/RegisterOperationalEventResponse" },
+                schema: {
+                  $ref: "#/components/schemas/RegisterOperationalEventResponse",
+                },
               },
             },
           },
@@ -88,7 +95,9 @@ export const openApiDocument = {
           required: true,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/CreateIncidentFromEventsRequest" },
+              schema: {
+                $ref: "#/components/schemas/CreateIncidentFromEventsRequest",
+              },
             },
           },
         },
@@ -97,7 +106,9 @@ export const openApiDocument = {
             description: "Incident created",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/CreateIncidentFromEventsResponse" },
+                schema: {
+                  $ref: "#/components/schemas/CreateIncidentFromEventsResponse",
+                },
               },
             },
           },
@@ -107,6 +118,28 @@ export const openApiDocument = {
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+          "500": { $ref: "#/components/responses/InternalError" },
+        },
+      },
+    },
+    "/api/v1/incidents/open": {
+      get: {
+        tags: ["Incidents"],
+        summary: "List open incidents",
+        description:
+          "Returns incidents with status OPEN or IN_PROGRESS. Consumed by the legacy PHP client (HU5).",
+        responses: {
+          "200": {
+            description: "Open incidents",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/OpenIncidentItem" },
+                },
               },
             },
           },
@@ -131,7 +164,9 @@ export const openApiDocument = {
           required: true,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/UpdateIncidentStatusRequest" },
+              schema: {
+                $ref: "#/components/schemas/UpdateIncidentStatusRequest",
+              },
             },
           },
         },
@@ -140,7 +175,9 @@ export const openApiDocument = {
             description: "Status updated",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/UpdateIncidentStatusResponse" },
+                schema: {
+                  $ref: "#/components/schemas/UpdateIncidentStatusResponse",
+                },
               },
             },
           },
@@ -258,11 +295,20 @@ export const openApiDocument = {
           "traceId",
         ],
         properties: {
-          sourceApplication: { $ref: "#/components/schemas/AllowedApplication" },
+          sourceApplication: {
+            $ref: "#/components/schemas/AllowedApplication",
+          },
           eventType: { type: "string", example: "PAYMENT_FAILED" },
-          eventDescription: { type: "string", example: "Gateway timeout during checkout" },
+          eventDescription: {
+            type: "string",
+            example: "Gateway timeout during checkout",
+          },
           severity: { $ref: "#/components/schemas/EventSeverity" },
-          occurredAt: { type: "string", format: "date-time", example: "2026-06-19T12:00:00.000Z" },
+          occurredAt: {
+            type: "string",
+            format: "date-time",
+            example: "2026-06-19T12:00:00.000Z",
+          },
           traceId: { type: "string", example: "trace-abc-001" },
         },
       },
@@ -286,8 +332,13 @@ export const openApiDocument = {
         ],
         properties: {
           title: { type: "string", example: "Payment degradation" },
-          description: { type: "string", example: "Multiple payment failures detected" },
-          affectedApplication: { $ref: "#/components/schemas/AllowedApplication" },
+          description: {
+            type: "string",
+            example: "Multiple payment failures detected",
+          },
+          affectedApplication: {
+            $ref: "#/components/schemas/AllowedApplication",
+          },
           severity: { $ref: "#/components/schemas/IncidentSeverity" },
           assignee: { type: "string", example: "ops-team" },
           eventIds: {
@@ -309,7 +360,13 @@ export const openApiDocument = {
             items: { type: "string", format: "uuid" },
           },
         },
-        required: ["id", "title", "status", "affectedApplication", "linkedEventIds"],
+        required: [
+          "id",
+          "title",
+          "status",
+          "affectedApplication",
+          "linkedEventIds",
+        ],
       },
       UpdateIncidentStatusRequest: {
         type: "object",
@@ -325,6 +382,29 @@ export const openApiDocument = {
           status: { $ref: "#/components/schemas/IncidentStatus" },
         },
         required: ["id", "status"],
+      },
+      OpenIncidentItem: {
+        type: "object",
+        properties: {
+          id: { type: "string", format: "uuid" },
+          affectedApplication: {
+            $ref: "#/components/schemas/AllowedApplication",
+          },
+          severity: { $ref: "#/components/schemas/IncidentSeverity" },
+          status: {
+            type: "string",
+            enum: ["OPEN", "IN_PROGRESS"],
+            description: "Only non-resolved incident statuses are returned",
+          },
+          createdAt: { type: "string", format: "date-time" },
+        },
+        required: [
+          "id",
+          "affectedApplication",
+          "severity",
+          "status",
+          "createdAt",
+        ],
       },
       CountByLabel: {
         type: "object",
@@ -381,9 +461,15 @@ export const openApiDocument = {
         type: "object",
         properties: {
           openIncidents: { $ref: "#/components/schemas/MetricResultNumber" },
-          resolvedIncidents: { $ref: "#/components/schemas/MetricResultNumber" },
-          eventsByApplication: { $ref: "#/components/schemas/MetricResultCountByLabelArray" },
-          eventsBySeverity: { $ref: "#/components/schemas/MetricResultCountByLabelArray" },
+          resolvedIncidents: {
+            $ref: "#/components/schemas/MetricResultNumber",
+          },
+          eventsByApplication: {
+            $ref: "#/components/schemas/MetricResultCountByLabelArray",
+          },
+          eventsBySeverity: {
+            $ref: "#/components/schemas/MetricResultCountByLabelArray",
+          },
           alertsGenerated: { $ref: "#/components/schemas/MetricResultNumber" },
         },
         required: [

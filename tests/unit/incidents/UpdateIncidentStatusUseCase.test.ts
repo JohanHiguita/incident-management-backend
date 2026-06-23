@@ -17,7 +17,9 @@ function buildIncident(): Incident {
     severity: IncidentSeverity.create("HIGH"),
     assignee: Assignee.create("ops-team"),
     affectedApplication: AffectedApplication.create("payments-api"),
-    linkedEventIds: [UniqueEntityId.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")],
+    linkedEventIds: [
+      UniqueEntityId.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+    ],
   });
 }
 
@@ -27,6 +29,7 @@ describe("UpdateIncidentStatusUseCase", () => {
     const repository: IncidentRepository = {
       findById: vi.fn().mockResolvedValue(incident),
       save: vi.fn().mockResolvedValue(undefined),
+      findOpen: vi.fn(),
     };
 
     const useCase = new UpdateIncidentStatusUseCase(repository);
@@ -43,6 +46,7 @@ describe("UpdateIncidentStatusUseCase", () => {
     const repository: IncidentRepository = {
       findById: vi.fn().mockResolvedValue(null),
       save: vi.fn(),
+      findOpen: vi.fn(),
     };
 
     const useCase = new UpdateIncidentStatusUseCase(repository);

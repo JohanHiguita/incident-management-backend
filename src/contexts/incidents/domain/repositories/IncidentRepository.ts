@@ -4,4 +4,5 @@ import type { Incident } from "../Incident.js";
 export interface IncidentRepository {
   save(incident: Incident): Promise<void>;
   findById(id: UniqueEntityId): Promise<Incident | null>;
+  findOpen(): Promise<Incident[]>;
 }

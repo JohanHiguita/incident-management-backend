@@ -7,12 +7,13 @@ import { ValueObject } from "../../../../shared/domain/ValueObject.js";
 
 export type IncidentStatusLevel = IncidentStatusValue;
 
-const ALLOWED_TRANSITIONS: Record<IncidentStatusValue, IncidentStatusValue[]> = {
-  OPEN: ["IN_PROGRESS", "RESOLVED"],
-  IN_PROGRESS: ["RESOLVED"],
-  RESOLVED: ["CLOSED"],
-  CLOSED: [],
-};
+const ALLOWED_TRANSITIONS: Record<IncidentStatusValue, IncidentStatusValue[]> =
+  {
+    OPEN: ["IN_PROGRESS", "RESOLVED"],
+    IN_PROGRESS: ["RESOLVED"],
+    RESOLVED: ["CLOSED"],
+    CLOSED: [],
+  };
 
 interface Props {
   value: IncidentStatusValue;
