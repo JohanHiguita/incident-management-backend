@@ -89,7 +89,7 @@ npm run populate
 
 ## Integración legacy (PHP) — HU5
 
-El directorio `legacy/` en la raíz del monorepo contiene un cliente PHP que consulta incidentes abiertos **vía API** (no accede a PostgreSQL).
+El directorio `backend/legacy/` contiene un cliente PHP que consulta incidentes abiertos **vía API** (no accede a PostgreSQL).
 
 ```
 PHP (legacy/)  --GET /api/v1/incidents/open-->  API Express  -->  PostgreSQL
@@ -104,7 +104,7 @@ PHP (legacy/)  --GET /api/v1/incidents/open-->  API Express  -->  PostgreSQL
 ### Uso
 
 ```bash
-# Desde la raíz del proyecto, con la API en http://localhost:3000
+# Desde backend/, con la API en http://localhost:3000
 php legacy/list_open_incidents.php
 ```
 
